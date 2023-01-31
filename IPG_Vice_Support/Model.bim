@@ -1,0 +1,1321 @@
+{
+  "name": "SemanticModel",
+  "compatibilityLevel": 1500,
+  "model": {
+    "culture": "en-US",
+    "dataSources": [
+      {
+        "name": "Custom",
+        "connectionString": "Provider=MSDASQL;Persist Security Info=False;Initial Catalog=HSD_ES;DSN=iBI DaaS",
+        "impersonationMode": "impersonateServiceAccount",
+        "annotations": [
+          {
+            "name": "ConnectionEditUISource",
+            "value": "Others"
+          }
+        ]
+      }
+    ],
+    "tables": [
+      {
+        "name": "QueryViceSupport",
+        "columns": [
+          {
+            "name": "id",
+            "dataType": "int64",
+            "sourceColumn": "id",
+            "sourceProviderType": "BigInt"
+          },
+          {
+            "name": "is_current",
+            "dataType": "int64",
+            "sourceColumn": "is_current",
+            "sourceProviderType": "Integer"
+          },
+          {
+            "name": "updated_date",
+            "dataType": "dateTime",
+            "sourceColumn": "updated_date",
+            "formatString": "General Date",
+            "sourceProviderType": "Date"
+          },
+          {
+            "name": "subject",
+            "dataType": "string",
+            "sourceColumn": "subject",
+            "sourceProviderType": "VarChar"
+          },
+          {
+            "name": "tenant",
+            "dataType": "string",
+            "sourceColumn": "tenant",
+            "sourceProviderType": "VarChar"
+          },
+          {
+            "name": "submitted_date",
+            "dataType": "dateTime",
+            "sourceColumn": "submitted_date",
+            "formatString": "General Date",
+            "sourceProviderType": "Date"
+          },
+          {
+            "name": "services_sys_val.support.tool_org_unit",
+            "dataType": "string",
+            "sourceColumn": "services_sys_val.support.tool_org_unit",
+            "sourceProviderType": "VarChar"
+          },
+          {
+            "name": "component",
+            "dataType": "string",
+            "sourceColumn": "component",
+            "sourceProviderType": "VarChar"
+          },
+          {
+            "name": "services_sys_val.support.service_sub_type",
+            "dataType": "string",
+            "sourceColumn": "services_sys_val.support.service_sub_type",
+            "sourceProviderType": "VarChar"
+          },
+          {
+            "name": "owner",
+            "dataType": "string",
+            "sourceColumn": "owner",
+            "sourceProviderType": "VarChar"
+          },
+          {
+            "name": "priority",
+            "dataType": "string",
+            "sourceColumn": "priority",
+            "sourceProviderType": "VarChar"
+          },
+          {
+            "name": "reason",
+            "dataType": "string",
+            "sourceColumn": "reason",
+            "sourceProviderType": "VarChar"
+          },
+          {
+            "name": "status",
+            "dataType": "string",
+            "sourceColumn": "status",
+            "sourceProviderType": "VarChar"
+          },
+          {
+            "name": "family",
+            "dataType": "string",
+            "sourceColumn": "family",
+            "sourceProviderType": "VarChar"
+          },
+          {
+            "name": "status_reason",
+            "dataType": "string",
+            "sourceColumn": "status_reason",
+            "sourceProviderType": "VarChar"
+          },
+          {
+            "name": "title",
+            "dataType": "string",
+            "sourceColumn": "title",
+            "sourceProviderType": "VarChar"
+          },
+          {
+            "name": "ww",
+            "dataType": "int64",
+            "sourceColumn": "ww",
+            "sourceProviderType": "Integer"
+          },
+          {
+            "name": "ww_submitted_date",
+            "dataType": "string",
+            "sourceColumn": "ww_submitted_date",
+            "sourceProviderType": "VarChar"
+          },
+          {
+            "name": "services_sys_val.support.acknowledged_date",
+            "dataType": "dateTime",
+            "sourceColumn": "services_sys_val.support.acknowledged_date"
+          },
+          {
+            "name": "services_sys_val.support.IP_affected",
+            "dataType": "string",
+            "sourceColumn": "services_sys_val.support.IP_affected"
+          },
+          {
+            "name": "services_sys_val.support.root_cause",
+            "dataType": "string",
+            "sourceColumn": "services_sys_val.support.root_cause"
+          },
+          {
+            "name": "services_sys_val.support.program",
+            "dataType": "string",
+            "sourceColumn": "services_sys_val.support.program"
+          },
+          {
+            "type": "calculated",
+            "name": "IsFirstAcknowledgeDate",
+            "dataType": "int64",
+            "isDataTypeInferred": true,
+            "expression": [
+              "",
+              "var firstackrecord = CALCULATE(MIN(QueryViceSupport[services_sys_val.support.acknowledged_date]), FILTER(QueryViceSupport, QueryViceSupport[id] = EARLIER(QueryViceSupport[id]) && QueryViceSupport[reason] = \"acknowledged\"))",
+              "return if(QueryViceSupport[services_sys_val.support.acknowledged_date] = firstackrecord, 1,0)"
+            ]
+          },
+          {
+            "type": "calculated",
+            "name": "FirstAcknowledgeDate",
+            "dataType": "dateTime",
+            "isDataTypeInferred": true,
+            "expression": [
+              "",
+              "MINX(FILTER(QueryViceSupport, QueryViceSupport[id] = EARLIER(QueryViceSupport[id])), QueryViceSupport[services_sys_val.support.acknowledged_date]) "
+            ]
+          },
+          {
+            "type": "calculated",
+            "name": "SeverityValue",
+            "dataType": "int64",
+            "isDataTypeInferred": true,
+            "expression": [
+              "",
+              "SWITCH(TRUE(),",
+              "QueryViceSupport[priority] = \"1-showstopper\" &&  QueryViceSupport[DaysToResolution] > 5, 1,",
+              "QueryViceSupport[priority] = \"2-high\" &&  QueryViceSupport[DaysToResolution] > 10, 2,",
+              "0)"
+            ]
+          },
+          {
+            "type": "calculated",
+            "name": "isRejected",
+            "dataType": "string",
+            "isDataTypeInferred": true,
+            "expression": [
+              "",
+              "if(COUNTROWS(FILTER(QueryViceSupport,QueryViceSupport[status]=\"rejected\" && QueryViceSupport[id]=EARLIER(QueryViceSupport[id] )))>0,\"yes\",\"no\")"
+            ]
+          },
+          {
+            "name": "closed_date",
+            "dataType": "dateTime",
+            "sourceColumn": "closed_date"
+          },
+          {
+            "name": "services_sys_val.support.rejected_date",
+            "dataType": "dateTime",
+            "sourceColumn": "services_sys_val.support.rejected_date"
+          },
+          {
+            "type": "calculated",
+            "name": "HasWIP_Acknowledged",
+            "dataType": "string",
+            "isDataTypeInferred": true,
+            "expression": [
+              "",
+              "if(COUNTROWS(FILTER(QueryViceSupport,QueryViceSupport[reason] in {\"wip\", \"acknowledged\"} && QueryViceSupport[id]=EARLIER(QueryViceSupport[id] )))>0,\"yes\",\"no\")"
+            ]
+          },
+          {
+            "type": "calculated",
+            "name": "IsAcknowledged",
+            "dataType": "string",
+            "isDataTypeInferred": true,
+            "expression": [
+              "",
+              "if(COUNTROWS(FILTER(QueryViceSupport,ISBLANK(QueryViceSupport[FirstAcknowledgeDate]) && QueryViceSupport[id]=EARLIER(QueryViceSupport[id] )))>0,\"no\",\"yes\")"
+            ]
+          },
+          {
+            "type": "calculated",
+            "name": "Acknowledged_Rejected",
+            "dataType": "dateTime",
+            "isDataTypeInferred": true,
+            "expression": [
+              "",
+              "--if(QueryViceSupport[IsAcknowledged] = \"yes\", QueryViceSupport[FirstAcknowledgeDate], QueryViceSupport[FirstRejectedDate])",
+              "switch(TRUE(),",
+              "QueryViceSupport[IsAcknowledged] = \"yes\", QueryViceSupport[FirstAcknowledgeDate],",
+              "QueryViceSupport[IsAcknowledged] = \"no\" && NOT(ISBLANK(QueryViceSupport[FirstRejectedDate])), QueryViceSupport[FirstRejectedDate],",
+              "QueryViceSupport[FirstClosedDate])"
+            ]
+          },
+          {
+            "type": "calculated",
+            "name": "FirstRejectedDate",
+            "dataType": "dateTime",
+            "isDataTypeInferred": true,
+            "expression": [
+              "",
+              "MINX(FILTER(QueryViceSupport, QueryViceSupport[id] = EARLIER(QueryViceSupport[id])), QueryViceSupport[services_sys_val.support.rejected_date]) "
+            ]
+          },
+          {
+            "type": "calculated",
+            "name": "DaysToAcknowledge",
+            "dataType": "int64",
+            "isDataTypeInferred": true,
+            "expression": [
+              "",
+              "var delta = DATEDIFF(QueryViceSupport[submitted_date],QueryViceSupport[Acknowledged_Rejected],DAY)",
+              "var deltatoday = DATEDIFF(QueryViceSupport[submitted_date], TODAY(),DAY)",
+              "return if(ISBLANK(QueryViceSupport[Acknowledged_Rejected]), deltatoday, delta)",
+              ""
+            ]
+          },
+          {
+            "type": "calculated",
+            "name": "IsComplete",
+            "dataType": "string",
+            "isDataTypeInferred": true,
+            "expression": [
+              "",
+              "if(COUNTROWS(FILTER(QueryViceSupport,QueryViceSupport[status] = \"complete\" && QueryViceSupport[id]=EARLIER(QueryViceSupport[id] )))>0,\"yes\",\"no\")"
+            ]
+          },
+          {
+            "type": "calculated",
+            "name": "FirstClosedDate",
+            "dataType": "dateTime",
+            "isDataTypeInferred": true,
+            "expression": [
+              "",
+              "MAXX(FILTER(QueryViceSupport, QueryViceSupport[id] = EARLIER(QueryViceSupport[id])), QueryViceSupport[closed_date]) "
+            ]
+          },
+          {
+            "type": "calculated",
+            "name": "Closed_Rejected",
+            "dataType": "dateTime",
+            "isDataTypeInferred": true,
+            "expression": [
+              "",
+              "if(QueryViceSupport[IsComplete] = \"yes\", QueryViceSupport[FirstClosedDate], QueryViceSupport[FirstRejectedDate])"
+            ]
+          },
+          {
+            "type": "calculated",
+            "name": "ranking",
+            "dataType": "int64",
+            "isDataTypeInferred": true,
+            "expression": [
+              "",
+              "RANKX(FILTER(QueryViceSupport, QueryViceSupport[id]=EARLIER(QueryViceSupport[id])),QueryViceSupport[updated_date],,ASC)"
+            ]
+          },
+          {
+            "type": "calculated",
+            "name": "datediffperrow",
+            "dataType": "int64",
+            "isDataTypeInferred": true,
+            "expression": [
+              "",
+              " \tDATEDIFF(",
+              "\t\tCALCULATE(MAX(QueryViceSupport[updated_date]),",
+              "\t\t\tFILTER(QueryViceSupport, QueryViceSupport[id]=EARLIER(QueryViceSupport[id]) && QueryViceSupport[ranking] = EARLIER(QueryViceSupport[ranking])-1))",
+              "\t\t\t,QueryViceSupport[updated_date],DAY)",
+              "\t\t\t"
+            ]
+          },
+          {
+            "name": "rev",
+            "dataType": "int64",
+            "sourceColumn": "rev"
+          },
+          {
+            "type": "calculated",
+            "name": "IsLatestRecord",
+            "dataType": "int64",
+            "isDataTypeInferred": true,
+            "expression": [
+              "",
+              "var lastest_record_update_date_for_all_reason = ",
+              "CALCULATE(",
+              "MAX(QueryViceSupport[updated_date]),",
+              "FILTER( ",
+              "\tQueryViceSupport,",
+              "\tQueryViceSupport[id] = EARLIER(QueryViceSupport[id]) ",
+              "",
+              "\t)",
+              ")",
+              "RETURN ",
+              "IF(QueryViceSupport[updated_date] = lastest_record_update_date_for_all_reason,1,0)",
+              ""
+            ]
+          },
+          {
+            "type": "calculated",
+            "name": "IsLastAcknowlegedorWIP",
+            "dataType": "int64",
+            "isDataTypeInferred": true,
+            "expression": [
+              " ",
+              "var latest_ack_wip_record = ",
+              "CALCULATE(",
+              "MAX(QueryViceSupport[updated_date]),",
+              "FILTER( ",
+              "\tQueryViceSupport,",
+              "\tQueryViceSupport[id] = EARLIER(QueryViceSupport[id]) ",
+              "\t&&QueryViceSupport[reason] in {\"acknowledged\", \"wip\"}",
+              "\t)",
+              ")",
+              "RETURN",
+              " IF(QueryViceSupport[updated_date] = latest_ack_wip_record,1,0)",
+              ""
+            ]
+          },
+          {
+            "type": "calculated",
+            "name": "datediff",
+            "dataType": "int64",
+            "isDataTypeInferred": true,
+            "expression": [
+              "",
+              "",
+              "var last_record_update_date = ",
+              "CALCULATE(",
+              "MAX(QueryViceSupport[updated_date]),",
+              "FILTER( ",
+              "\tQueryViceSupport,",
+              "\tQueryViceSupport[id] = EARLIER(QueryViceSupport[id]) ",
+              "\t&& QueryViceSupport[rev] < EARLIER(QueryViceSupport[rev]) ",
+              "\t)",
+              ")",
+              "",
+              "var last_record_reason = ",
+              "LOOKUPVALUE(",
+              "\tQueryViceSupport[reason],",
+              "\tQueryViceSupport[updated_date],last_record_update_date,",
+              "\tQueryViceSupport[id],QueryViceSupport[id])",
+              "",
+              "var date_diff = ",
+              "--IF(last_record_reason <> \"acknowledged\" || last_record_reason <> \"wip\" , ",
+              "IF(NOT(last_record_reason) in{ \"acknowledged\", \"wip\"} , ",
+              "0,IF(ISBLANK(QueryViceSupport[updated_date]),0,IF(last_record_update_date<=QueryViceSupport[updated_date],",
+              "DATEDIFF(last_record_update_date,QueryViceSupport[updated_date],DAY),(DATEDIFF(QueryViceSupport[updated_date], last_record_update_date,DAY)*-1))))",
+              "",
+              "RETURN ",
+              "date_diff",
+              ""
+            ]
+          },
+          {
+            "type": "calculated",
+            "name": "CumDateDiff",
+            "dataType": "int64",
+            "isDataTypeInferred": true,
+            "expression": [
+              "CALCULATE(",
+              "\t\tsum(QueryViceSupport[DateDiff]),",
+              "\t\tfilter(ALL(QueryViceSupport),",
+              "\t\t QueryViceSupport[id] = EARLIER(QueryViceSupport[id])",
+              "\t\t&& QueryViceSupport[rev] <= EARLIER(QueryViceSupport[rev]) ",
+              "\t\t)",
+              "\t)",
+              ""
+            ]
+          },
+          {
+            "type": "calculated",
+            "name": "DaysToResolution",
+            "dataType": "int64",
+            "isDataTypeInferred": true,
+            "expression": [
+              "",
+              "IF (",
+              "    QueryViceSupport[IsLatestRecord] = 1,",
+              "    IF (",
+              "        QueryViceSupport[IsLastAcknowlegedorWIP] = 1,",
+              "        IF(QueryViceSupport[updated_date]<=TODAY(), ",
+              "\tDATEDIFF ( QueryViceSupport[updated_date], TODAY(), DAY ) + QueryViceSupport[CumDateDiff]",
+              "\t,DATEDIFF (TODAY(),QueryViceSupport[updated_date], DAY ) + QueryViceSupport[CumDateDiff])",
+              ",QueryViceSupport[CumDateDiff]",
+              "),",
+              "    0",
+              ")"
+            ]
+          },
+          {
+            "name": "ww_closed_date",
+            "dataType": "string",
+            "sourceColumn": "ww_closed_date"
+          },
+          {
+            "name": "ww_updated_date",
+            "dataType": "string",
+            "sourceColumn": "ww_updated_date"
+          },
+          {
+            "type": "calculated",
+            "name": "ww_updated_date_nbr",
+            "dataType": "string",
+            "isDataTypeInferred": true,
+            "expression": "CONCATENATE(LEFT(QueryViceSupport[ww_updated_date],4) ,RIGHT(QueryViceSupport[ww_updated_date],2))"
+          },
+          {
+            "type": "calculated",
+            "name": "ww_closed_date_nbr",
+            "dataType": "string",
+            "isDataTypeInferred": true,
+            "expression": "CONCATENATE(LEFT(QueryViceSupport[ww_closed_date],4), RIGHT(QueryViceSupport[ww_closed_date],2))"
+          },
+          {
+            "type": "calculated",
+            "name": "ww_submitted_date_nbr",
+            "dataType": "string",
+            "isDataTypeInferred": true,
+            "expression": "CONCATENATE(LEFT(QueryViceSupport[ww_submitted_date],4), RIGHT(QueryViceSupport[ww_submitted_date],2))"
+          },
+          {
+            "type": "calculated",
+            "name": "AcknowledgeGroupings",
+            "dataType": "string",
+            "isDataTypeInferred": true,
+            "expression": [
+              "",
+              "SWITCH(TRUE(),",
+              "QueryViceSupport[DaysToAcknowledge] = 0, \"0\",",
+              "QueryViceSupport[DaysToAcknowledge] >= 1 && QueryViceSupport[DaysToAcknowledge] <=3, \"1-3\",",
+              "QueryViceSupport[DaysToAcknowledge] >= 4 && QueryViceSupport[DaysToAcknowledge] <=5, \"4-5\",",
+              "QueryViceSupport[DaysToAcknowledge] >= 6 && QueryViceSupport[DaysToAcknowledge] <=10, \"6-10\",",
+              "QueryViceSupport[DaysToAcknowledge] >= 11,\"11+\")"
+            ],
+            "sortByColumn": "OrderAcknowledgeGroup"
+          },
+          {
+            "type": "calculated",
+            "name": "ResolutionGroupings",
+            "dataType": "string",
+            "isDataTypeInferred": true,
+            "expression": [
+              "",
+              "SWITCH(TRUE(),",
+              "QueryViceSupport[DaysToResolution] = 0 , \"0\",",
+              "QueryViceSupport[DaysToResolution] >= 1 && QueryViceSupport[DaysToResolution] <=3  , \"1-3\",",
+              "QueryViceSupport[DaysToResolution] >= 3 && QueryViceSupport[DaysToResolution] <=5  , \"4-5\",",
+              "QueryViceSupport[DaysToResolution] >= 6 && QueryViceSupport[DaysToResolution] <=10  , \"6-10\",",
+              "QueryViceSupport[DaysToResolution] >= 11, \"11+\")"
+            ],
+            "sortByColumn": "OrderResolutionGroup"
+          },
+          {
+            "type": "calculated",
+            "name": "OrderAcknowledgeGroup",
+            "dataType": "int64",
+            "isDataTypeInferred": true,
+            "expression": [
+              "",
+              "SWITCH(TRUE(),",
+              "QueryViceSupport[DaysToAcknowledge] = 0, 0,",
+              "QueryViceSupport[DaysToAcknowledge] >= 1 && QueryViceSupport[DaysToAcknowledge] <=3, 1,",
+              "QueryViceSupport[DaysToAcknowledge] >= 4 && QueryViceSupport[DaysToAcknowledge] <=5, 2,",
+              "QueryViceSupport[DaysToAcknowledge] >= 6 && QueryViceSupport[DaysToAcknowledge] <=10, 3,",
+              "QueryViceSupport[DaysToAcknowledge] >= 11 ,4)"
+            ]
+          },
+          {
+            "type": "calculated",
+            "name": "OrderResolutionGroup",
+            "dataType": "int64",
+            "isDataTypeInferred": true,
+            "expression": [
+              "",
+              "SWITCH(TRUE(),",
+              "QueryViceSupport[DaysToResolution] = 0, 0,",
+              "QueryViceSupport[DaysToResolution] >= 1 && QueryViceSupport[DaysToResolution] <=3, 1,",
+              "QueryViceSupport[DaysToResolution] >= 4 && QueryViceSupport[DaysToResolution] <=5, 2,",
+              "QueryViceSupport[DaysToResolution] >= 6 && QueryViceSupport[DaysToResolution] <=10, 3,",
+              "QueryViceSupport[DaysToResolution] >= 11, 4)"
+            ]
+          },
+          {
+            "name": "status_bucket",
+            "dataType": "string",
+            "sourceColumn": "status_bucket"
+          },
+          {
+            "type": "calculated",
+            "name": "Intel Quarter Closed",
+            "dataType": "string",
+            "isDataTypeInferred": true,
+            "expression": "RELATED(QueryIPGCalendarBridge[Intel Quarter])"
+          },
+          {
+            "type": "calculated",
+            "name": "Intel Year Closed",
+            "dataType": "int64",
+            "isDataTypeInferred": true,
+            "expression": [
+              "",
+              "RELATED(QueryIPGCalendarBridge[Intel Year])"
+            ]
+          },
+          {
+            "name": "url",
+            "dataType": "string",
+            "sourceColumn": "url"
+          },
+          {
+            "type": "calculated",
+            "name": "ww_closed_rejected_blank",
+            "dataType": "string",
+            "isDataTypeInferred": true,
+            "expression": [
+              " ",
+              "if(QueryViceSupport[status_bucket] = \"Complete\", QueryViceSupport[ww_closed_date_nbr], BLANK())"
+            ]
+          },
+          {
+            "type": "calculated",
+            "name": "ww_submitted_year",
+            "dataType": "string",
+            "isDataTypeInferred": true,
+            "expression": " LEFT(QueryViceSupport[ww_submitted_date], 4)"
+          },
+          {
+            "type": "calculated",
+            "name": "Calculated Column 1",
+            "dataType": "string",
+            "isDataTypeInferred": true,
+            "expression": [
+              "",
+              "MINX(FILTER(QueryViceSupport, QueryViceSupport[id] = EARLIER(QueryViceSupport[id])&& QueryViceSupport[services_sys_val.support.tool_org_unit] = \"External.VICE\"), QueryViceSupport[ww_submitted_date_nbr]) "
+            ]
+          },
+          {
+            "type": "calculated",
+            "name": "SubmittedQuarter",
+            "dataType": "string",
+            "isDataTypeInferred": true,
+            "expression": "RELATED(QueryIPGQuarter[Intel Quarter])"
+          },
+          {
+            "type": "calculated",
+            "name": "FirstAssignedToVICE",
+            "dataType": "dateTime",
+            "isDataTypeInferred": true,
+            "expression": [
+              "",
+              "minx(filter(QueryViceSupport, QueryViceSupport[id] = EARLIER(QueryViceSupport[id]) && QueryViceSupport[services_sys_val.support.tool_org_unit] = \"External.VICE\"), QueryViceSupport[updated_date])"
+            ]
+          }
+        ],
+        "partitions": [
+          {
+            "name": "QueryViceSupport",
+            "dataView": "full",
+            "source": {
+              "type": "query",
+              "query": [
+                "select  ",
+                "id",
+                ",rev",
+                ",[is_current]",
+                ",[submitted_date]",
+                ",[updated_date]",
+                ",[services_sys_val.support.acknowledged_date]",
+                ",[closed_date]",
+                ",[services_sys_val.support.rejected_date]",
+                ",status",
+                ", case when status = 'complete' then 'Complete' ",
+                "\twhen status = 'rejected' then 'Complete'",
+                "\telse 'Active' end as status_bucket",
+                ",[status_reason]",
+                ",subject",
+                ",tenant",
+                ",[services_sys_val.support.tool_org_unit]",
+                ",component",
+                ",[services_sys_val.support.service_sub_type]",
+                ",owner",
+                ",priority",
+                ",reason",
+                ",family",
+                ",title",
+                ",ww",
+                ",[ww_submitted_date]",
+                ",[ww_closed_date]",
+                ",[ww_updated_date]",
+                ",[services_sys_val.support.IP_affected]",
+                ",[services_sys_val.support.root_cause]",
+                ",[services_sys_val.support.program]",
+                ", 'https://hsdes.intel.com/home/default.html#article?id=' + [id] url",
+                "--,min([services_sys_val.support.acknowledged_date]) as minack",
+                "--,case when status = 'complete' then max([updated_date]) end as completedate",
+                "--from [dw.services_sys_val.support]",
+                "from [es.services_sys_val.support_history]",
+                "where 1=1",
+                "--AND ww = Datepart(ww, Getutcdate())",
+                "AND [services_sys_val.support.tool_org_unit] = 'External.VICE'",
+                "AND component in ('tool.Maestro', 'tool.Perspec', 'tool.Tornado', 'tool.SVFW')",
+                "AND [services_sys_val.support.service_sub_type] in ('sighting', 'consultation')",
+                "",
+                "",
+                "group by",
+                "id",
+                ",rev",
+                ",[is_current]",
+                ",[submitted_date]",
+                ",[updated_date]",
+                ",[services_sys_val.support.acknowledged_date]",
+                ",[closed_date]",
+                ",[services_sys_val.support.rejected_date]",
+                ",status",
+                ",[status_reason]",
+                ",subject",
+                ",tenant",
+                ",[services_sys_val.support.tool_org_unit]",
+                ",component",
+                ",[services_sys_val.support.service_sub_type]",
+                ",owner",
+                ",priority",
+                ",reason",
+                ",family",
+                ",title",
+                ",ww",
+                ",[ww_submitted_date]",
+                ",[ww_closed_date]",
+                ",[ww_updated_date]",
+                ",[services_sys_val.support.IP_affected]",
+                ",[services_sys_val.support.root_cause]",
+                ",[services_sys_val.support.program]"
+              ],
+              "dataSource": "Custom"
+            },
+            "annotations": [
+              {
+                "name": "QueryEditorSerialization",
+                "value": [
+                  "<?xml version=\"1.0\" encoding=\"UTF-16\"?><Gemini xmlns=\"QueryEditorSerialization\"><AnnotationContent><![CDATA[<RSQueryCommandText>select  ",
+                  "id",
+                  ",rev",
+                  ",[is_current]",
+                  ",[submitted_date]",
+                  ",[updated_date]",
+                  ",[services_sys_val.support.acknowledged_date]",
+                  ",[closed_date]",
+                  ",[services_sys_val.support.rejected_date]",
+                  ",status",
+                  ", case when status = 'complete' then 'Complete' ",
+                  "\twhen status = 'rejected' then 'Complete'",
+                  "\telse 'Active' end as status_bucket",
+                  ",[status_reason]",
+                  ",subject",
+                  ",tenant",
+                  ",[services_sys_val.support.tool_org_unit]",
+                  ",component",
+                  ",[services_sys_val.support.service_sub_type]",
+                  ",owner",
+                  ",priority",
+                  ",reason",
+                  ",family",
+                  ",title",
+                  ",ww",
+                  ",[ww_submitted_date]",
+                  ",[ww_closed_date]",
+                  ",[ww_updated_date]",
+                  ",[services_sys_val.support.IP_affected]",
+                  ",[services_sys_val.support.root_cause]",
+                  ",[services_sys_val.support.program]",
+                  ", 'https://hsdes.intel.com/home/default.html#article?id=' + [id] url",
+                  "--,min([services_sys_val.support.acknowledged_date]) as minack",
+                  "--,case when status = 'complete' then max([updated_date]) end as completedate",
+                  "--from [dw.services_sys_val.support]",
+                  "from [es.services_sys_val.support_history]",
+                  "where 1=1",
+                  "--AND ww = Datepart(ww, Getutcdate())",
+                  "AND [services_sys_val.support.tool_org_unit] = 'External.VICE'",
+                  "AND component in ('tool.Maestro', 'tool.Perspec', 'tool.Tornado', 'tool.SVFW')",
+                  "AND [services_sys_val.support.service_sub_type] in ('sighting', 'consultation')",
+                  "",
+                  "",
+                  "group by",
+                  "id",
+                  ",rev",
+                  ",[is_current]",
+                  ",[submitted_date]",
+                  ",[updated_date]",
+                  ",[services_sys_val.support.acknowledged_date]",
+                  ",[closed_date]",
+                  ",[services_sys_val.support.rejected_date]",
+                  ",status",
+                  ",[status_reason]",
+                  ",subject",
+                  ",tenant",
+                  ",[services_sys_val.support.tool_org_unit]",
+                  ",component",
+                  ",[services_sys_val.support.service_sub_type]",
+                  ",owner",
+                  ",priority",
+                  ",reason",
+                  ",family",
+                  ",title",
+                  ",ww",
+                  ",[ww_submitted_date]",
+                  ",[ww_closed_date]",
+                  ",[ww_updated_date]",
+                  ",[services_sys_val.support.IP_affected]",
+                  ",[services_sys_val.support.root_cause]",
+                  ",[services_sys_val.support.program]</RSQueryCommandText><RSQueryCommandType>Text</RSQueryCommandType><RSQueryDesignState></RSQueryDesignState>]]></AnnotationContent></Gemini>"
+                ]
+              }
+            ]
+          }
+        ],
+        "annotations": [
+          {
+            "name": "_TM_ExtProp_QueryDefinition",
+            "value": [
+              "select  ",
+              "id",
+              ",rev",
+              ",[is_current]",
+              ",[submitted_date]",
+              ",[updated_date]",
+              ",[services_sys_val.support.acknowledged_date]",
+              ",[closed_date]",
+              ",[services_sys_val.support.rejected_date]",
+              ",status",
+              ", case when status = 'complete' then 'Complete' ",
+              "\twhen status = 'rejected' then 'Complete'",
+              "\telse 'Active' end as status_bucket",
+              ",[status_reason]",
+              ",subject",
+              ",tenant",
+              ",[services_sys_val.support.tool_org_unit]",
+              ",component",
+              ",[services_sys_val.support.service_sub_type]",
+              ",owner",
+              ",priority",
+              ",reason",
+              ",family",
+              ",title",
+              ",ww",
+              ",[ww_submitted_date]",
+              ",[ww_closed_date]",
+              ",[ww_updated_date]",
+              ",[services_sys_val.support.IP_affected]",
+              ",[services_sys_val.support.root_cause]",
+              ",[services_sys_val.support.program]",
+              ", 'https://hsdes.intel.com/home/default.html#article?id=' + [id] url",
+              "--,min([services_sys_val.support.acknowledged_date]) as minack",
+              "--,case when status = 'complete' then max([updated_date]) end as completedate",
+              "--from [dw.services_sys_val.support]",
+              "from [es.services_sys_val.support_history]",
+              "where 1=1",
+              "--AND ww = Datepart(ww, Getutcdate())",
+              "AND [services_sys_val.support.tool_org_unit] = 'External.VICE'",
+              "AND component in ('tool.Maestro', 'tool.Perspec', 'tool.Tornado', 'tool.SVFW')",
+              "AND [services_sys_val.support.service_sub_type] in ('sighting', 'consultation')",
+              "",
+              "",
+              "group by",
+              "id",
+              ",rev",
+              ",[is_current]",
+              ",[submitted_date]",
+              ",[updated_date]",
+              ",[services_sys_val.support.acknowledged_date]",
+              ",[closed_date]",
+              ",[services_sys_val.support.rejected_date]",
+              ",status",
+              ",[status_reason]",
+              ",subject",
+              ",tenant",
+              ",[services_sys_val.support.tool_org_unit]",
+              ",component",
+              ",[services_sys_val.support.service_sub_type]",
+              ",owner",
+              ",priority",
+              ",reason",
+              ",family",
+              ",title",
+              ",ww",
+              ",[ww_submitted_date]",
+              ",[ww_closed_date]",
+              ",[ww_updated_date]",
+              ",[services_sys_val.support.IP_affected]",
+              ",[services_sys_val.support.root_cause]",
+              ",[services_sys_val.support.program]"
+            ]
+          },
+          {
+            "name": "_TM_ExtProp_DbTableName",
+            "value": "QueryViceSupport"
+          },
+          {
+            "name": "QueryEditorSerialization",
+            "value": [
+              "<?xml version=\"1.0\" encoding=\"UTF-16\"?><Gemini xmlns=\"QueryEditorSerialization\"><AnnotationContent><![CDATA[<RSQueryCommandText>select  ",
+              "id",
+              ",rev",
+              ",[is_current]",
+              ",[submitted_date]",
+              ",[updated_date]",
+              ",[services_sys_val.support.acknowledged_date]",
+              ",[closed_date]",
+              ",[services_sys_val.support.rejected_date]",
+              ",status",
+              ", case when status = 'complete' then 'Complete' ",
+              "\twhen status = 'rejected' then 'Complete'",
+              "\telse 'Active' end as status_bucket",
+              ",[status_reason]",
+              ",subject",
+              ",tenant",
+              ",[services_sys_val.support.tool_org_unit]",
+              ",component",
+              ",[services_sys_val.support.service_sub_type]",
+              ",owner",
+              ",priority",
+              ",reason",
+              ",family",
+              ",title",
+              ",ww",
+              ",[ww_submitted_date]",
+              ",[ww_closed_date]",
+              ",[ww_updated_date]",
+              ",[services_sys_val.support.IP_affected]",
+              ",[services_sys_val.support.root_cause]",
+              ",[services_sys_val.support.program]",
+              ", 'https://hsdes.intel.com/home/default.html#article?id=' + [id] url",
+              "--,min([services_sys_val.support.acknowledged_date]) as minack",
+              "--,case when status = 'complete' then max([updated_date]) end as completedate",
+              "--from [dw.services_sys_val.support]",
+              "from [es.services_sys_val.support_history]",
+              "where 1=1",
+              "--AND ww = Datepart(ww, Getutcdate())",
+              "AND [services_sys_val.support.tool_org_unit] = 'External.VICE'",
+              "AND component in ('tool.Maestro', 'tool.Perspec', 'tool.Tornado', 'tool.SVFW')",
+              "AND [services_sys_val.support.service_sub_type] in ('sighting', 'consultation')",
+              "",
+              "",
+              "group by",
+              "id",
+              ",rev",
+              ",[is_current]",
+              ",[submitted_date]",
+              ",[updated_date]",
+              ",[services_sys_val.support.acknowledged_date]",
+              ",[closed_date]",
+              ",[services_sys_val.support.rejected_date]",
+              ",status",
+              ",[status_reason]",
+              ",subject",
+              ",tenant",
+              ",[services_sys_val.support.tool_org_unit]",
+              ",component",
+              ",[services_sys_val.support.service_sub_type]",
+              ",owner",
+              ",priority",
+              ",reason",
+              ",family",
+              ",title",
+              ",ww",
+              ",[ww_submitted_date]",
+              ",[ww_closed_date]",
+              ",[ww_updated_date]",
+              ",[services_sys_val.support.IP_affected]",
+              ",[services_sys_val.support.root_cause]",
+              ",[services_sys_val.support.program]</RSQueryCommandText><RSQueryCommandType>Text</RSQueryCommandType><RSQueryDesignState></RSQueryDesignState>]]></AnnotationContent></Gemini>"
+            ]
+          }
+        ]
+      },
+      {
+        "name": "QueryIPGCalendar",
+        "columns": [
+          {
+            "name": "category",
+            "dataType": "string",
+            "sourceColumn": "category",
+            "sortByColumn": "category_order",
+            "sourceProviderType": "VarChar"
+          },
+          {
+            "name": "category_order",
+            "dataType": "int64",
+            "sourceColumn": "category_order",
+            "sourceProviderType": "Integer"
+          },
+          {
+            "name": "Date",
+            "dataType": "string",
+            "sourceColumn": "Date",
+            "sourceProviderType": "VarChar"
+          },
+          {
+            "name": "Intel Month",
+            "dataType": "int64",
+            "sourceColumn": "Intel Month",
+            "sourceProviderType": "Integer"
+          },
+          {
+            "name": "Intel Quarter",
+            "dataType": "string",
+            "sourceColumn": "Intel Quarter",
+            "sourceProviderType": "VarChar"
+          },
+          {
+            "name": "Intel Month Desc",
+            "dataType": "string",
+            "sourceColumn": "Intel Month Desc",
+            "sortByColumn": "Intel Month",
+            "sourceProviderType": "VarChar"
+          },
+          {
+            "name": "Intel Year-Month Desc",
+            "dataType": "string",
+            "sourceColumn": "Intel Year-Month Desc",
+            "sourceProviderType": "VarChar"
+          },
+          {
+            "name": "Intel Work Week",
+            "dataType": "int64",
+            "sourceColumn": "Intel Work Week",
+            "sourceProviderType": "Integer"
+          },
+          {
+            "name": "Intel Work Week Name",
+            "dataType": "string",
+            "sourceColumn": "Intel Work Week Name",
+            "sourceProviderType": "VarChar"
+          },
+          {
+            "name": "Intel Work Week Start Date",
+            "dataType": "dateTime",
+            "sourceColumn": "Intel Work Week Start Date",
+            "formatString": "General Date",
+            "sourceProviderType": "Date"
+          },
+          {
+            "name": "Intel Year",
+            "dataType": "int64",
+            "sourceColumn": "Intel Year",
+            "sourceProviderType": "Integer"
+          },
+          {
+            "name": "Intel Year-Month",
+            "dataType": "int64",
+            "sourceColumn": "Intel Year-Month",
+            "sourceProviderType": "Integer"
+          },
+          {
+            "name": "Intel Year-Quarter",
+            "dataType": "string",
+            "sourceColumn": "Intel Year-Quarter",
+            "sourceProviderType": "VarChar"
+          },
+          {
+            "name": "Intel Year-Work Week",
+            "dataType": "int64",
+            "sourceColumn": "Intel Year-Work Week",
+            "sourceProviderType": "Integer"
+          }
+        ],
+        "partitions": [
+          {
+            "name": "QueryIPGCalendar",
+            "dataView": "full",
+            "source": {
+              "type": "query",
+              "query": "select * from v_ipg_calendar",
+              "dataSource": "Custom"
+            },
+            "annotations": [
+              {
+                "name": "QueryEditorSerialization",
+                "value": "<?xml version=\"1.0\" encoding=\"UTF-16\"?><Gemini xmlns=\"QueryEditorSerialization\"><AnnotationContent><![CDATA[<RSQueryCommandText>select * from v_ipg_calendar</RSQueryCommandText><RSQueryCommandType>Text</RSQueryCommandType><RSQueryDesignState></RSQueryDesignState>]]></AnnotationContent></Gemini>"
+              }
+            ]
+          }
+        ],
+        "annotations": [
+          {
+            "name": "_TM_ExtProp_QueryDefinition",
+            "value": "select * from v_ipg_calendar"
+          },
+          {
+            "name": "_TM_ExtProp_DbTableName",
+            "value": "QueryIPGCalendar"
+          },
+          {
+            "name": "QueryEditorSerialization",
+            "value": "<?xml version=\"1.0\" encoding=\"UTF-16\"?><Gemini xmlns=\"QueryEditorSerialization\"><AnnotationContent><![CDATA[<RSQueryCommandText>select * from v_ipg_calendar</RSQueryCommandText><RSQueryCommandType>Text</RSQueryCommandType><RSQueryDesignState></RSQueryDesignState>]]></AnnotationContent></Gemini>"
+          }
+        ]
+      },
+      {
+        "name": "QueryIPGCalendarBridge",
+        "columns": [
+          {
+            "name": "Intel Year-Work Week",
+            "dataType": "int64",
+            "sourceColumn": "Intel Year-Work Week",
+            "sourceProviderType": "Integer"
+          },
+          {
+            "name": "Intel Quarter",
+            "dataType": "string",
+            "sourceColumn": "Intel Quarter"
+          },
+          {
+            "name": "Intel Year",
+            "dataType": "int64",
+            "sourceColumn": "Intel Year"
+          }
+        ],
+        "partitions": [
+          {
+            "name": "QueryIPGCalendarBridge",
+            "dataView": "full",
+            "source": {
+              "type": "query",
+              "query": [
+                "select distinct ",
+                "[Intel Year-Work Week]",
+                ",[Intel Quarter]",
+                ",[Intel Year]",
+                " from v_ipg_calendar"
+              ],
+              "dataSource": "Custom"
+            },
+            "annotations": [
+              {
+                "name": "QueryEditorSerialization",
+                "value": [
+                  "<?xml version=\"1.0\" encoding=\"UTF-16\"?><Gemini xmlns=\"QueryEditorSerialization\"><AnnotationContent><![CDATA[<RSQueryCommandText>select distinct ",
+                  "[Intel Year-Work Week]",
+                  ",[Intel Quarter]",
+                  ",[Intel Year]",
+                  " from v_ipg_calendar</RSQueryCommandText><RSQueryCommandType>Text</RSQueryCommandType><RSQueryDesignState></RSQueryDesignState>]]></AnnotationContent></Gemini>"
+                ]
+              }
+            ]
+          }
+        ],
+        "annotations": [
+          {
+            "name": "_TM_ExtProp_QueryDefinition",
+            "value": [
+              "select distinct ",
+              "[Intel Year-Work Week]",
+              ",[Intel Quarter]",
+              ",[Intel Year]",
+              " from v_ipg_calendar"
+            ]
+          },
+          {
+            "name": "_TM_ExtProp_DbTableName",
+            "value": "QueryIPGCalendarBridge"
+          },
+          {
+            "name": "QueryEditorSerialization",
+            "value": [
+              "<?xml version=\"1.0\" encoding=\"UTF-16\"?><Gemini xmlns=\"QueryEditorSerialization\"><AnnotationContent><![CDATA[<RSQueryCommandText>select distinct ",
+              "[Intel Year-Work Week]",
+              ",[Intel Quarter]",
+              ",[Intel Year]",
+              " from v_ipg_calendar</RSQueryCommandText><RSQueryCommandType>Text</RSQueryCommandType><RSQueryDesignState></RSQueryDesignState>]]></AnnotationContent></Gemini>"
+            ]
+          }
+        ]
+      },
+      {
+        "name": "QueryIPGQuarter",
+        "columns": [
+          {
+            "name": "Intel Quarter",
+            "dataType": "string",
+            "sourceColumn": "Intel Quarter",
+            "sourceProviderType": "VarChar"
+          },
+          {
+            "name": "Intel Year-Work Week",
+            "dataType": "int64",
+            "sourceColumn": "Intel Year-Work Week"
+          },
+          {
+            "name": "Intel Year",
+            "dataType": "int64",
+            "sourceColumn": "Intel Year"
+          }
+        ],
+        "partitions": [
+          {
+            "name": "QueryIPGQuarter",
+            "dataView": "full",
+            "source": {
+              "type": "query",
+              "query": [
+                "select distinct ",
+                "[Intel Year-Work Week]",
+                ",[Intel Quarter]",
+                ",[Intel Year]",
+                " from v_ipg_calendar"
+              ],
+              "dataSource": "Custom"
+            },
+            "annotations": [
+              {
+                "name": "QueryEditorSerialization",
+                "value": [
+                  "<?xml version=\"1.0\" encoding=\"UTF-16\"?><Gemini xmlns=\"QueryEditorSerialization\"><AnnotationContent><![CDATA[<RSQueryCommandText>select distinct ",
+                  "[Intel Year-Work Week]",
+                  ",[Intel Quarter]",
+                  ",[Intel Year]",
+                  " from v_ipg_calendar</RSQueryCommandText><RSQueryCommandType>Text</RSQueryCommandType><RSQueryDesignState></RSQueryDesignState>]]></AnnotationContent></Gemini>"
+                ]
+              }
+            ]
+          }
+        ],
+        "annotations": [
+          {
+            "name": "_TM_ExtProp_QueryDefinition",
+            "value": [
+              "select distinct ",
+              "[Intel Year-Work Week]",
+              ",[Intel Quarter]",
+              ",[Intel Year]",
+              " from v_ipg_calendar"
+            ]
+          },
+          {
+            "name": "_TM_ExtProp_DbTableName",
+            "value": "QueryIPGQuarter"
+          },
+          {
+            "name": "QueryEditorSerialization",
+            "value": [
+              "<?xml version=\"1.0\" encoding=\"UTF-16\"?><Gemini xmlns=\"QueryEditorSerialization\"><AnnotationContent><![CDATA[<RSQueryCommandText>select distinct ",
+              "[Intel Year-Work Week]",
+              ",[Intel Quarter]",
+              ",[Intel Year]",
+              " from v_ipg_calendar</RSQueryCommandText><RSQueryCommandType>Text</RSQueryCommandType><RSQueryDesignState></RSQueryDesignState>]]></AnnotationContent></Gemini>"
+            ]
+          }
+        ]
+      },
+      {
+        "name": "QueryLastProcessed",
+        "columns": [
+          {
+            "name": "lastprocesseddate",
+            "dataType": "dateTime",
+            "sourceColumn": "lastprocesseddate",
+            "formatString": "General Date",
+            "sourceProviderType": "Date"
+          }
+        ],
+        "partitions": [
+          {
+            "name": "QueryLastProcessed",
+            "dataView": "full",
+            "source": {
+              "type": "query",
+              "query": [
+                "select distinct",
+                "max(updated_date) as lastprocesseddate",
+                "from [es.services_sys_val.support_history]"
+              ],
+              "dataSource": "Custom"
+            },
+            "annotations": [
+              {
+                "name": "QueryEditorSerialization",
+                "value": [
+                  "<?xml version=\"1.0\" encoding=\"UTF-16\"?><Gemini xmlns=\"QueryEditorSerialization\"><AnnotationContent><![CDATA[<RSQueryCommandText>select distinct",
+                  "max(updated_date) as lastprocesseddate",
+                  "from [es.services_sys_val.support_history]</RSQueryCommandText><RSQueryCommandType>Text</RSQueryCommandType><RSQueryDesignState></RSQueryDesignState>]]></AnnotationContent></Gemini>"
+                ]
+              }
+            ]
+          }
+        ],
+        "annotations": [
+          {
+            "name": "_TM_ExtProp_QueryDefinition",
+            "value": [
+              "select distinct",
+              "max(updated_date) as lastprocesseddate",
+              "from [es.services_sys_val.support_history]"
+            ]
+          },
+          {
+            "name": "_TM_ExtProp_DbTableName",
+            "value": "QueryLastProcessed"
+          },
+          {
+            "name": "QueryEditorSerialization",
+            "value": [
+              "<?xml version=\"1.0\" encoding=\"UTF-16\"?><Gemini xmlns=\"QueryEditorSerialization\"><AnnotationContent><![CDATA[<RSQueryCommandText>select distinct",
+              "max(updated_date) as lastprocesseddate",
+              "from [es.services_sys_val.support_history]</RSQueryCommandText><RSQueryCommandType>Text</RSQueryCommandType><RSQueryDesignState></RSQueryDesignState>]]></AnnotationContent></Gemini>"
+            ]
+          }
+        ]
+      }
+    ],
+    "relationships": [
+      {
+        "name": "f5759d7c-6cd4-449f-acbf-054e629c7a27",
+        "fromTable": "QueryIPGCalendar",
+        "fromColumn": "Intel Year-Work Week",
+        "toTable": "QueryIPGCalendarBridge",
+        "toColumn": "Intel Year-Work Week",
+        "crossFilteringBehavior": "bothDirections"
+      },
+      {
+        "name": "f9fa8b1b-e80c-475b-8002-d49f2f439601",
+        "fromTable": "QueryViceSupport",
+        "fromColumn": "ww_closed_date_nbr",
+        "toTable": "QueryIPGCalendarBridge",
+        "toColumn": "Intel Year-Work Week"
+      },
+      {
+        "name": "a630fdf0-8160-4030-ac26-af7d7a2b03dd",
+        "fromTable": "QueryViceSupport",
+        "fromColumn": "ww_submitted_date_nbr",
+        "toTable": "QueryIPGQuarter",
+        "toColumn": "Intel Year-Work Week",
+        "crossFilteringBehavior": "bothDirections"
+      }
+    ],
+    "roles": [
+      {
+        "name": "IPG_InternalUsers",
+        "modelPermission": "read",
+        "members": [
+          {
+            "memberName": "AMR\\IPG_Dashboard_SuperUsers",
+            "memberId": "S-1-5-21-725345543-602162358-527237240-4603439"
+          }
+        ]
+      },
+      {
+        "name": "IPG_Developers",
+        "modelPermission": "administrator",
+        "members": [
+          {
+            "memberName": "AMR\\IPG_Dashboard_Developers",
+            "memberId": "S-1-5-21-725345543-602162358-527237240-4603422"
+          }
+        ]
+      },
+      {
+        "name": "IPG_ExternalUsers",
+        "modelPermission": "read",
+        "members": [
+          {
+            "memberName": "AMR\\IPG_Dashboard_Users",
+            "memberId": "S-1-5-21-725345543-602162358-527237240-4603440"
+          }
+        ]
+      }
+    ],
+    "annotations": [
+      {
+        "name": "ClientCompatibilityLevel",
+        "value": "600"
+      }
+    ]
+  },
+  "id": "SemanticModel"
+}
